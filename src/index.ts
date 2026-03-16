@@ -32,6 +32,7 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       ]
     }
   });
+
   const cluster = await expandCluster(contact);
   if (cluster.length === 0) {
     const newcontact = await prisma.contact.create({
@@ -111,10 +112,10 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
 });
 
 // ** TESTING **
-app.get('/api/debug/get-db', async (req: Request, res: Response) => {
-  const contact = await prisma.contact.findMany();
-  res.json(contact);
-});
+//app.get('/api/debug/get-db', async (req: Request, res: Response) => {
+//  const contact = await prisma.contact.findMany();
+//  res.json(contact);
+//});
 
 app.listen(port, () => {
   console.log(`Server running on: ${port}`);
