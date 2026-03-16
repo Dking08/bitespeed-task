@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { prisma } from "./prisma";
 import { LinkPrecedence } from './generated/prisma/enums';
+import { getPrimaryContact, hasNewInfo } from "./utils/contactUtils";
 import 'dotenv/config'
 
 const app = express();
@@ -45,6 +46,25 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
     })
     return
   }
+  const primary = getPrimaryContact(contact);
+
+  if (hasNewInfo(contact, email, phoneNumber)) {
+
+    const secondary = await prisma.contact.create({
+      data: {
+        email,
+        phoneNumber,
+        linkedId: primary.id,
+        linkPrecedence: LinkPrecedence.secondary
+      }
+    });
+
+    return res.json({
+      message: "Secondary contact created",
+      primary,
+      secondary
+    });
+  }
   res.json({
     message: "Record Found!",
     contact: contact
@@ -60,3 +80,4 @@ app.get('/api/debug/get-db', async (req: Request, res: Response) => {
 app.listen(port, () => {
   console.log(`Server running on: ${port}`);
 });
+
