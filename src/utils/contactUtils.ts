@@ -25,19 +25,30 @@ export function hasNewInfo(
   return false;
 }
 
-export async function expandCluster(contacts: any[]) {
+export async function expandCluster(initialContacts: Contact[]) {
 
-  const ids = new Set<number>();
-  contacts.forEach(c => {
-    ids.add(c.id);
-    if (c.linkedId) ids.add(c.linkedId);
-  });
+  const visited = new Set<number>();
+  const queue = [...initialContacts];
+  while (queue.length > 0) {
+    const contact = queue.pop();
+    if (!contact || visited.has(contact.id)) continue;
+    visited.add(contact.id);
+    const related = await prisma.contact.findMany({
+      where: {
+        OR: [
+          { id: contact.linkedId ?? -1 },
+          { linkedId: contact.id }
+        ]
+      }
+    });
+    for (const r of related) {
+      if (!visited.has(r.id)) queue.push(r);
+    }
+  }
+
   const cluster = await prisma.contact.findMany({
     where: {
-      OR: [
-        { id: { in: [...ids] } },
-        { linkedId: { in: [...ids] } }
-      ]
+      id: { in: [...visited] }
     }
   });
 

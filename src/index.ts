@@ -42,15 +42,21 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       }
     });
     res.json({
-      message: "New Record Created:",
-      contact: newcontact
+      contact: {
+        primaryContactId: newcontact.id,
+        emails: email,
+        phoneNumbers: phoneNumber,
+        secondaryContactIds: []
+      }
     })
     return
   }
-  console.log("Cluster:", cluster);
+
+  //console.log("Cluster:", cluster);
+
   const primary = await normaliseCluster(cluster);
 
-  if (hasNewInfo(contact, email, phoneNumber)) {
+  if (hasNewInfo(cluster, email, phoneNumber)) {
 
     const secondary = await prisma.contact.create({
       data: {
@@ -61,12 +67,13 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       }
     });
 
-    return res.json({
-      message: "Secondary contact created",
-      primary,
-      secondary
-    });
+    //return res.json({
+    //  message: "Secondary contact created",
+    //  primary,
+    //  secondary
+    //});
   }
+
   const finalCluster = await prisma.contact.findMany({
     where: {
       OR: [
@@ -75,9 +82,31 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       ]
     }
   });
+  const emails = [
+    primary.email,
+    ...finalCluster
+      .filter(c => c.id !== primary.id && c.email)
+      .map(c => c.email)
+  ];
+
+  const phones = [
+    primary.phoneNumber,
+    ...finalCluster
+      .filter(c => c.id !== primary.id && c.phoneNumber)
+      .map(c => c.phoneNumber)
+  ];
+
+  const secondaryIds = finalCluster
+    .filter(c => c.linkPrecedence === LinkPrecedence.secondary)
+    .map(c => c.id);
+
   res.json({
-    message: "Record Found!",
-    contact: finalCluster
+    contact: {
+      primaryContactId: primary.id,
+      emails: [...new Set(emails)],
+      phoneNumbers: [...new Set(phones)],
+      secondaryContactIds: secondaryIds
+    }
   });
 });
 
