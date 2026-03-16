@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { prisma } from "./prisma";
 import { LinkPrecedence } from './generated/prisma/enums';
-import { getPrimaryContact, hasNewInfo } from "./utils/contactUtils";
+import { normaliseCluster, hasNewInfo, expandCluster } from "./utils/contactUtils";
 import 'dotenv/config'
 
 const app = express();
@@ -32,7 +32,8 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       ]
     }
   });
-  if (contact.length === 0) {
+  const cluster = await expandCluster(contact);
+  if (cluster.length === 0) {
     const newcontact = await prisma.contact.create({
       data: {
         email,
@@ -46,7 +47,8 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
     })
     return
   }
-  const primary = getPrimaryContact(contact);
+  console.log("Cluster:", cluster);
+  const primary = await normaliseCluster(cluster);
 
   if (hasNewInfo(contact, email, phoneNumber)) {
 
@@ -65,9 +67,17 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       secondary
     });
   }
+  const finalCluster = await prisma.contact.findMany({
+    where: {
+      OR: [
+        { id: primary.id },
+        { linkedId: primary.id }
+      ]
+    }
+  });
   res.json({
     message: "Record Found!",
-    contact: contact
+    contact: finalCluster
   });
 });
 
