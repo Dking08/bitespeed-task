@@ -20,14 +20,9 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
     });
   }
   // console.log(process.env.DATABASE_URL);
-  // WILL Reintroduce creationg logic
-  //const contact = await prisma.contact.create({
-  //  data: {
-  //    email,
-  //    phoneNumber,
-  //    linkPrecedence: "primary"
-  //  }
-  //});
+
+  console.log("Request: ", req.body);
+
   const contact = await prisma.contact.findMany({
     where: {
       OR: [
@@ -36,12 +31,23 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
       ]
     }
   });
-  console.log("Request: ", req.body);
+  if (contact.length === 0) {
+    const newcontact = await prisma.contact.create({
+      data: {
+        email,
+        phoneNumber,
+        linkPrecedence: LinkPrecedence.primary
+      }
+    });
+    res.json({
+      message: "New Record Created:",
+      contact: newcontact
+    })
+    return
+  }
   res.json({
-    message: "This is a responce",
-    email,
-    phoneNumber,
-    Resultcontact: contact
+    message: "Record Found!",
+    contact: contact
   });
 });
 
