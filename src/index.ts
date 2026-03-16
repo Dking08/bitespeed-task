@@ -20,11 +20,20 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
     });
   }
   // console.log(process.env.DATABASE_URL);
-  const contact = await prisma.contact.create({
-    data: {
-      email,
-      phoneNumber,
-      linkPrecedence: "primary"
+  // WILL Reintroduce creationg logic
+  //const contact = await prisma.contact.create({
+  //  data: {
+  //    email,
+  //    phoneNumber,
+  //    linkPrecedence: "primary"
+  //  }
+  //});
+  const contact = await prisma.contact.findMany({
+    where: {
+      OR: [
+        { email: email ?? undefined },
+        { phoneNumber: phoneNumber ?? undefined }
+      ]
     }
   });
   console.log("Request: ", req.body);
@@ -32,7 +41,7 @@ app.post('/identify', async (req: Request<{}, {}, identifyR>, res: Response) => 
     message: "This is a responce",
     email,
     phoneNumber,
-    contact: contact
+    Resultcontact: contact
   });
 });
 
