@@ -2,7 +2,7 @@
 
 A backend service that consolidates customer identities across multiple contact points (email and phone number) into a single unified profile. Built as part of the BiteSpeed Backend Engineering Task.
 
-<!-- Live at: `https://bitespeed-task-dastageer.onrender.com` -->
+Live at: `https://bitespeed-task-backend-xjcn.onrender.com`
 
 ---
 
@@ -168,19 +168,22 @@ The server starts on port `8001` by default.
 
 ---
 
-<!-- ## Deployment (Render)
+## Deployment (Render)
 
-The service is deployed on [Render](https://render.com). The following settings are used:
+The service is deployed on [Render](render.com). The following settings are used:
 
 | Setting        | Value                        |
 |----------------|------------------------------|
-| Build Command  | `npx prisma generate`        |
-| Start Command  | `npx tsx src/index.ts`       |
+| Build Command  | `npm install && npx prisma generate && npx prisma migrate deploy`        |
+| Start Command  | `npm run dev`       |
 | Environment    | Node                         |
 
 `DATABASE_URL` is set as an environment variable in the Render dashboard.
+PostgreSQL is provisioned as a managed database on Render, and the connection string is used in the deployment settings.
 
---- -->
+> Also deploying on AWS EC2.
+
+---
 
 ## Author
 
